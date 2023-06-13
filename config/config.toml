@@ -5,12 +5,9 @@ description = 'todo'
 docs_url = '/'
 
 
-[rabbitmq]
-host = "rabbitmq"
-vhost = "demo"
-port = 5672
-user = "guest"
-password = "guest"
+[redis]
+host = "redis"
+port = 6379
 
 
 [binary]

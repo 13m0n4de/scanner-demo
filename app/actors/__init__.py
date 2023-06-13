@@ -1,21 +1,18 @@
 import dramatiq
+from dramatiq.brokers.redis import RedisBroker
 
-from dramatiq.brokers.rabbitmq import RabbitmqBroker
+from app import get_app_config
 
-from app.config import get_app_config
 
-RABBITMQ_CONFIG = get_app_config()['rabbitmq']
+REDIS_CONFIG = get_app_config()['redis']
 
-rabbitmq_broker = RabbitmqBroker(
-    url=(
-        f"amqp://{RABBITMQ_CONFIG['user']}:{RABBITMQ_CONFIG['password']}"
-        f"@{RABBITMQ_CONFIG['host']}:{RABBITMQ_CONFIG['port']}/{RABBITMQ_CONFIG['vhost']}"
-    ))
-dramatiq.set_broker(rabbitmq_broker)
-
+broker = RedisBroker(url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}")
+broker.declare_queue("default")
+dramatiq.set_broker(broker)
 
 from app.actors.masscan import run_masscan
 
 __all__ = (
+    "broker",
     "run_masscan",
 )
