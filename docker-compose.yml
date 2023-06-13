@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: web
+    container_name: web
+    ports:
+      - "5000:5000"
+    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    volumes:
+      - ./config/:/app/config/
+    environment:
+      - CONFIG_PATH=config/config.toml
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+     image: rabbitmq:3.12.0
+     container_name: rabbitmq
+     restart: always
+     ports:
+       - "5672:5672"
+     environment:
+       RABBITMQ_DEFAULT_VHOST: demo
+

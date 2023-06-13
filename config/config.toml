@@ -1,0 +1,23 @@
+[api]
+version = '0.1.0'
+title = 'demo'
+description = 'todo'
+docs_url = '/'
+
+
+[rabbitmq]
+host = "rabbitmq"
+vhost = "demo"
+port = 5672
+user = "guest"
+password = "guest"
+
+
+[binary]
+masscan = "/usr/bin/masscan"
+httpx = "bin/httpx"
+
+
+[command]
+masscan = ["{binary}", "-p80", "{target}"]
+httpx = ["{binary}", "-p {port}", "{target}"]
