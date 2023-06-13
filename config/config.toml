@@ -5,6 +5,10 @@ description = 'todo'
 docs_url = '/'
 
 
+[dashboard]
+url = "/dashboard"
+
+
 [redis]
 host = "redis"
 port = 6379
@@ -16,5 +20,5 @@ httpx = "bin/httpx"
 
 
 [command]
-masscan = ["{binary}", "-p80", "{target}"]
+masscan = ["{binary}", "{target}", "-p {port_range}", "--rate {rate}", "--source-ip {source_ip}"]
 httpx = ["{binary}", "-p {port}", "{target}"]

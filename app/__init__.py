@@ -4,11 +4,12 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 
 from dramatiq_dashboard import DashboardApp
 
-from app.config import get_app_config
+from app.config import CONFIG
 from app.api import api_router
 from app.actors import broker
 
-API_CONFIG = get_app_config()['api']
+API_CONFIG = CONFIG['api']
+DASHBOARD_CONFIG = CONFIG['dashboard']
 
 
 def create_app() -> FastAPI:
@@ -21,8 +22,8 @@ def create_app() -> FastAPI:
     register_cors(app)
     register_routers(app)
 
-    dashboard = DashboardApp(broker=broker, prefix="/dashboard")
-    app.mount("/dashboard", WSGIMiddleware(dashboard))
+    dashboard = DashboardApp(broker=broker, prefix=DASHBOARD_CONFIG['url'])
+    app.mount(DASHBOARD_CONFIG['url'], WSGIMiddleware(dashboard))
 
     return app
 
