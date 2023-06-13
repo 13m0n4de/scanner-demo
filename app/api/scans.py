@@ -6,9 +6,9 @@ from app import actors
 router = APIRouter()
 
 
-@router.post("/scan")
-async def scan(params: models.ScanCreate):
-    task = actors.run_masscan.send(params.target)
+@router.post("/scans/masscan")
+async def scan_by_masscan(config: models.MasscanConfig):
+    task = actors.run_masscan.send(config.dict())
     try:
         status = "submitted"
         message_id = task.message_id
