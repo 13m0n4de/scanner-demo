@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api import scan
+from app.api import scans
 
 api_router = APIRouter()
-api_router.include_router(scan.router, tags=["scan"])
+api_router.include_router(scans.router, tags=["scans"])
