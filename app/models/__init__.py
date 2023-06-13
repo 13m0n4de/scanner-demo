@@ -1,5 +1,5 @@
-from app.models.scan import ScanCreate
+from app.models.scans import MasscanConfig
 
 __all__ = (
-    "ScanCreate"
+    "MasscanConfig"
 )
