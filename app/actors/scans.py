@@ -1,25 +1,18 @@
 import subprocess
 
-from typing import Dict
+from typing import Dict, List
 
 from app.actors import dramatiq
-from app.config import CONFIG
+from app.utils import build_command, parse_masscan_results
 
 
 @dramatiq.actor(store_results=True)
-def run_masscan(config: Dict[str, str]) -> str:
-    command = []
-    config['binary'] = CONFIG['binary']['masscan']
-
-    for arg in CONFIG['command']['masscan']:
-        if value := config[arg['key']]:
-            if option := arg.get('option'):
-                command.append(option)
-            command.append(str(value))
-
+def run_masscan(params: Dict[str, str]) -> List[Dict[str, str | int]]:
+    command = build_command('masscan', params)
     run_masscan.logger.info(f'command => {" ".join(command)}')
 
     output = subprocess.check_output(command)
     run_masscan.logger.info(f'output => {output.decode()}')
 
-    return output.decode()
+    results = parse_masscan_results(output.decode())
+    return results
