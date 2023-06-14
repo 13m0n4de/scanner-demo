@@ -20,5 +20,10 @@ httpx = "bin/httpx"
 
 
 [command]
-masscan = ["{binary}", "{target}", "-p {port_range}", "--rate {rate}", "--source-ip {source_ip}"]
-httpx = ["{binary}", "-p {port}", "{target}"]
+masscan = [
+    { key = "binary" },
+    { key = "target" },
+    { option = "-p", key = "port_range" },
+    { option = "--rate", key = "rate" },
+    { option = "--source-ip", key = "source_ip" }
+]
