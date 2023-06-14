@@ -16,8 +16,23 @@ services:
     depends_on:
       - redis
 
+  worker:
+    build: .
+    image: worker
+    container_name: worker
+    command: dramatiq app:actors.broker
+    volumes:
+      - ./config/:/app/config/
+      - ./logs/:/app/logs/
+    environment:
+      - CONFIG_PATH=config/config.toml
+    depends_on:
+      - redis
+
   redis:
      image: redis:7.2-rc2-alpine
      container_name: redis
      restart: always
+     ports:
+       - "6379:6379"
 
