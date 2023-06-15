@@ -1,4 +1,3 @@
-import re
 import json
 
 from typing import Dict, List
@@ -22,26 +21,7 @@ def build_command(name: str, params: Dict[str, str | int]) -> List[str]:
     return command
 
 
-def parse_masscan_text_output(output: str) -> List[Dict[str, str | int]]:
-    pattern = r"Discovered open port (\d+)/(\w+) on (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
-    matches = re.findall(pattern, output)
-
-    results_dict = {}  # {'x.x.x.x': {'ip': 'x.x.x.x', 'ports': [...]}}
-    for port, protocol, ip in matches:
-        if results_dict.get(ip) is None:
-            results_dict[ip] = {}
-            results_dict[ip]['ports'] = []
-            results_dict[ip]['ip'] = ip
-
-        results_dict[ip]['ports'].append({
-            "port": int(port),
-            "protocol": protocol,
-        })
-
-    return list(results_dict.values())
-
-
-def parse_masscan_json_output(output: str) -> List[Dict[str, str | int]]:
+def parse_masscan_output(output: str) -> List[Dict[str, str | int]]:
     results = json.loads(output)
     for result in results:
         del result['timestamp']
