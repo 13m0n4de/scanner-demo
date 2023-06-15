@@ -14,16 +14,12 @@ host = "redis"
 port = 6379
 
 
-[binary]
-masscan = "/usr/bin/masscan"
-httpx = "bin/httpx"
-
-
-[command]
-masscan = [
-    { key = "binary" },
-    { key = "target" },
-    { option = "-p", key = "port_range" },
-    { option = "--rate", key = "rate" },
-    { option = "--source-ip", key = "source_ip" }
+[actors.masscan]
+binary = "/usr/bin/masscan"
+command = [
+    "{binary}", "{target}",
+    ["-p", "{port_range}"],
+    ["--rate", "{rate}"],
+    ["--source-ip", "{source_ip}"],
+    ["-oJ", "-"]
 ]
