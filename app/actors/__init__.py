@@ -17,9 +17,9 @@ broker.add_middleware(Results(backend=backend))
 dramatiq.set_broker(broker)
 
 
-from app.actors.scans import run_masscan
+from app.actors.scans import scan_by_masscan
 
 __all__ = (
     "broker",
-    "run_masscan",
+    "scan_by_masscan",
 )

@@ -8,8 +8,8 @@ router = APIRouter()
 
 
 @router.post("/scans/masscan")
-async def scan_by_masscan(config: models.MasscanConfig):
-    task = actors.run_masscan.send(config.dict())
+async def start_masscan(config: models.MasscanConfig):
+    task = actors.scan_by_masscan.send(config.dict())
     try:
         status = "submitted"
         message_id = task.message_id
@@ -24,7 +24,7 @@ async def scan_by_masscan(config: models.MasscanConfig):
 
 @router.get("/scans/masscan/{message_id}")
 async def get_masscan_status(message_id: str):
-    task_message = actors.run_masscan.message().copy(message_id=message_id)
+    task_message = actors.scan_by_masscan.message().copy(message_id=message_id)
     try:
         result = task_message.get_result()
     except ResultMissing:
