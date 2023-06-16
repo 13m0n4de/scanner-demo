@@ -1,5 +1,8 @@
-from app.models.scans import MasscanConfig
+from app.models.params import MasscanParams, HttpxParams
+from app.models.results import ScanResult
 
 __all__ = (
-    "MasscanConfig"
+    "MasscanParams",
+    "HttpxParams",
+    "ScanResult"
 )

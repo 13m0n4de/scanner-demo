@@ -1,27 +1,35 @@
 import json
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from app.config import CONFIG
+from app.models import MasscanParams, ScanResult
 
 
-def build_command(name: str, params: Dict[str, str | int]) -> List[str]:
+ACTORS_CONFIG = CONFIG['actors']
+
+
+def build_masscan_command(params: Union[MasscanParams, List[ScanResult]]) -> List[str]:
     command = []
-    params['binary'] = CONFIG['actors'][name]['binary']
+    params_dict = params.dict()
+    params_dict['binary'] = ACTORS_CONFIG['masscan']['binary']
 
-    for part in CONFIG['actors'][name]['command']:
-        if isinstance(part, str):
-            command.append(part.format(**params))
-        else:
-            value = part[1].format(**params)
-            if value != "None":
-                command.append(part[0])
-                command.append(value)
+    if isinstance(params, MasscanParams):
+        for part in ACTORS_CONFIG['masscan']['command']:
+            if isinstance(part, str):
+                command.append(part.format(**params_dict))
+            else:
+                value = part[1].format(**params_dict)
+                if value != "None":
+                    command.append(part[0])
+                    command.append(value)
+    elif isinstance(params, ScanResult):
+        pass
 
     return command
 
 
-def parse_masscan_output(output: str) -> List[Dict[str, str | int]]:
+def parse_masscan_output(output: str) -> List[ScanResult]:
     if output == '':
         return []
     results = json.loads(output)
