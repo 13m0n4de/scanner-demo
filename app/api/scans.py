@@ -1,15 +1,15 @@
 from fastapi import APIRouter
 from dramatiq.results import ResultMissing, ResultTimeout
 
-from app import models
+from app.models import MasscanParams
 from app.actors import scan_by_masscan
 
 router = APIRouter()
 
 
 @router.post("/scans/masscan")
-async def start_masscan(config: models.MasscanConfig):
-    task = scan_by_masscan.send(config.dict())
+async def start_masscan(config: MasscanParams):
+    task = scan_by_masscan.send(config)
     try:
         status = "submitted"
         message_id = task.message_id
