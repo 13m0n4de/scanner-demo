@@ -23,3 +23,13 @@ command = [
     ["--source-ip", "{source_ip}"],
     ["-oJ", "-"]
 ]
+
+[actors.httpx]
+binary = 'bin/httpx'
+command = [
+    "{binary}",
+    ["-u", "{target}"],
+    ["-p", "{port_range}"],
+    "-json",
+    "-silent"
+]
