@@ -22,6 +22,8 @@ def build_command(name: str, params: Dict[str, str | int]) -> List[str]:
 
 
 def parse_masscan_output(output: str) -> List[Dict[str, str | int]]:
+    if output == '':
+        return []
     results = json.loads(output)
     for result in results:
         del result['timestamp']
