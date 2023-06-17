@@ -1,14 +1,28 @@
 import json
-import logging
 
-from pydantic import parse_obj_as
-from typing import List, Union, Dict
+from pydantic import parse_obj_as, BaseModel
+from pydantic.fields import ModelField
+from typing import List, Union, Dict, Type
 
 from app.config import CONFIG
 from app.models import MasscanParams, HttpxParams, ScanResult
 
 
 ACTORS_CONFIG = CONFIG['actors']
+
+
+def get_defaults(model: Type[BaseModel]) -> dict:
+    defaults = {}
+    for filed_name, filed in model.__fields__.items():
+        if isinstance(filed, ModelField):
+            if default_factory := filed.default_factory:
+                defaults[filed_name] = default_factory()
+            elif default := filed.default:
+                defaults[filed_name] = default
+            else:
+                defaults[filed_name] = None
+
+    return defaults
 
 
 def build_command(name: str, params: Dict[str, str]) -> List[str]:
@@ -30,13 +44,14 @@ def build_command(name: str, params: Dict[str, str]) -> List[str]:
 def build_masscan_command(params: Union[MasscanParams, ScanResult]) -> List[str]:
     if isinstance(params, MasscanParams):
         params_dict = params.dict()
+
     elif isinstance(params, ScanResult):
-        params_dict = {
+        params_dict = get_defaults(MasscanParams)
+        params_dict.update({
             'target': params.ip,
             'port_range': ','.join([str(port_info.port) for port_info in params.ports]),
-            'rate': 1000,
-            'source_ip': None
-        }
+        })
+
     else:
         raise TypeError(type(params))
 
