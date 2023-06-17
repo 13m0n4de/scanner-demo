@@ -26,6 +26,7 @@ dramatiq.set_encoder(CustomJSONEncoder())
 from app.actors.scans import scan_by_masscan, scan_by_httpx
 
 __all__ = (
+    "broker",
     "scan_by_masscan",
     "scan_by_httpx"
 )

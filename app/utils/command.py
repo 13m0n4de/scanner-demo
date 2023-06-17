@@ -63,13 +63,16 @@ def build_masscan_command(params: Union[MasscanParams, ScanResult]) -> List[str]
 def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[str]:
     if isinstance(params, HttpxParams):
         params_dict = params.dict()
+
     elif isinstance(params, ScanResult):
-        params_dict = {
+        params_dict = get_defaults(HttpxParams)
+        params_dict.update({
             'target': params.ip,
-            'port_range': ','.join([str(port_info.port) for port_info in params.ports])
-        }
+            'port_range': ','.join([str(port_info.port) for port_info in params.ports]),
+        })
+
     else:
-        raise TypeError
+        raise TypeError(type(params))
 
     command = build_command('httpx', params_dict)
 
