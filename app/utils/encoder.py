@@ -1,5 +1,4 @@
 import json
-import logging
 
 from typing import Dict, Union, List, Tuple
 from pydantic import BaseModel, parse_obj_as
