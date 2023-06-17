@@ -1,6 +1,8 @@
 import json
+import logging
 
-from typing import List, Union
+from pydantic import parse_obj_as
+from typing import List, Union, Dict
 
 from app.config import CONFIG
 from app.models import MasscanParams, HttpxParams, ScanResult
@@ -9,42 +11,52 @@ from app.models import MasscanParams, HttpxParams, ScanResult
 ACTORS_CONFIG = CONFIG['actors']
 
 
-def build_masscan_command(params: Union[MasscanParams, List[ScanResult]]) -> List[str]:
+def build_command(name: str, params: Dict[str, str]) -> List[str]:
     command = []
-    params_dict = params.dict()
-    params_dict['binary'] = ACTORS_CONFIG['masscan']['binary']
+    params['binary'] = ACTORS_CONFIG[name]['binary']
 
+    for part in ACTORS_CONFIG[name]['command']:
+        if isinstance(part, str):
+            command.append(part.format(**params))
+        else:
+            value = part[1].format(**params)
+            if value != "None":
+                command.append(part[0])
+                command.append(value)
+
+    return command
+
+
+def build_masscan_command(params: Union[MasscanParams, ScanResult]) -> List[str]:
     if isinstance(params, MasscanParams):
-        for part in ACTORS_CONFIG['masscan']['command']:
-            if isinstance(part, str):
-                command.append(part.format(**params_dict))
-            else:
-                value = part[1].format(**params_dict)
-                if value != "None":
-                    command.append(part[0])
-                    command.append(value)
+        params_dict = params.dict()
     elif isinstance(params, ScanResult):
-        pass
+        params_dict = {
+            'target': params.ip,
+            'port_range': ','.join([str(port_info.port) for port_info in params.ports]),
+            'rate': 1000,
+            'source_ip': None
+        }
+    else:
+        raise TypeError(type(params))
+
+    command = build_command('masscan', params_dict)
 
     return command
 
 
 def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[str]:
-    command = []
-    params_dict = params.dict()
-    params_dict['binary'] = ACTORS_CONFIG['httpx']['binary']
-
-    if isinstance(params, MasscanParams):
-        for part in ACTORS_CONFIG['httpx']['command']:
-            if isinstance(part, str):
-                command.append(part.format(**params_dict))
-            else:
-                value = part[1].format(**params_dict)
-                if value != "None":
-                    command.append(part[0])
-                    command.append(value)
+    if isinstance(params, HttpxParams):
+        params_dict = params.dict()
     elif isinstance(params, ScanResult):
-        pass
+        params_dict = {
+            'target': params.ip,
+            'port_range': ','.join([str(port_info.port) for port_info in params.ports])
+        }
+    else:
+        raise TypeError
+
+    command = build_command('httpx', params_dict)
 
     return command
 
@@ -52,19 +64,20 @@ def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[st
 def parse_masscan_output(output: str) -> List[ScanResult]:
     if output == '':
         return []
+    scan_results: List[ScanResult] = []
     results = json.loads(output)
     for result in results:
-        del result['timestamp']
+        scan_result = {'ip': result['ip'], 'ports': []}
         for port_result in result['ports']:
-            del port_result['status']
-            del port_result['reason']
-            del port_result['ttl']
-
-    return results
+            scan_result['ports'].append({
+                'port': port_result['port'],
+                'protocol': port_result['proto']
+            })
+        scan_results.append(parse_obj_as(ScanResult, scan_result))
+    return scan_results
 
 
 def parse_httpx_output(output: str) -> List[ScanResult]:
     if output == '':
         return []
     return json.loads(output)
-

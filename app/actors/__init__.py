@@ -10,7 +10,10 @@ from app.utils import CustomJSONEncoder
 
 REDIS_CONFIG = CONFIG['redis']
 
-backend = RedisBackend(url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}")
+backend = RedisBackend(
+    url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}",
+    encoder=CustomJSONEncoder()
+)
 
 broker = RedisBroker(url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}")
 broker.declare_queue("default")

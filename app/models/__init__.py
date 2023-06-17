@@ -1,8 +1,7 @@
 from app.models.params import MasscanParams, HttpxParams
-from app.models.results import ScanResult
+from app.models.results import ScanResult, PortResult
 
 __all__ = (
-    "MasscanParams",
-    "HttpxParams",
-    "ScanResult"
+    "MasscanParams", "HttpxParams",
+    "PortResult", "ScanResult"
 )
