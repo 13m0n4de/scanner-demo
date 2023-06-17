@@ -7,9 +7,25 @@ from app.actors import scan_by_masscan, scan_by_httpx
 router = APIRouter()
 
 
+@router.post("/scans")
+async def start_all(params: MasscanParams):
+    pipe = scan_by_masscan.message(params) | scan_by_masscan.message()
+    task = pipe.run()
+    try:
+        status = "submitted"
+        message_id = task.message_id
+    except AttributeError:
+        status = "completed"
+        message_id = None
+    return {
+        "status": status,
+        "message_id": message_id
+    }
+
+
 @router.post("/scans/masscan")
-async def start_masscan(config: MasscanParams):
-    task = scan_by_masscan.send(config)
+async def start_masscan(params: MasscanParams):
+    task = scan_by_masscan.send(params)
     try:
         status = "submitted"
         message_id = task.message_id
