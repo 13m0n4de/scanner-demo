@@ -53,7 +53,7 @@ def build_masscan_command(params: Union[MasscanParams, ScanResult]) -> List[str]
         })
 
     else:
-        raise TypeError(type(params))
+        raise TypeError(type(params), params)
 
     command = build_command('masscan', params_dict)
 
@@ -72,7 +72,7 @@ def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[st
         })
 
     else:
-        raise TypeError(type(params))
+        raise TypeError(type(params), params)
 
     command = build_command('httpx', params_dict)
 
@@ -82,6 +82,7 @@ def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[st
 def parse_masscan_output(output: str) -> List[ScanResult]:
     if output == '':
         return []
+
     scan_results: List[ScanResult] = []
     results = json.loads(output)
     for result in results:
@@ -98,4 +99,27 @@ def parse_masscan_output(output: str) -> List[ScanResult]:
 def parse_httpx_output(output: str) -> List[ScanResult]:
     if output == '':
         return []
-    return json.loads(output)
+
+    # { ip: [{port, service, ...}] }
+    scan_results_dict = {}
+    for line in output.splitlines():
+        result = json.loads(line)
+        ip = result['input']
+        if ip not in scan_results_dict:
+            scan_results_dict[ip] = []
+        scan_results_dict[ip].append({
+            'port': result['port'],
+            'protocol': 'tcp',
+            'service': result['webserver']
+        })
+
+    scan_results: List[ScanResult] = []
+    for ip, port_results in scan_results_dict.items():
+        scan_results.append(
+            parse_obj_as(
+                ScanResult,
+                {'ip': ip, 'ports': port_results}
+            )
+        )
+
+    return scan_results
