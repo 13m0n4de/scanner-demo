@@ -8,11 +8,11 @@ from app.config import CONFIG
 from app.utils import CustomJSONEncoder
 
 
-REDIS_CONFIG = CONFIG['redis']
+REDIS_CONFIG = CONFIG["redis"]
 
 backend = RedisBackend(
     url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}",
-    encoder=CustomJSONEncoder()
+    encoder=CustomJSONEncoder(),
 )
 
 broker = RedisBroker(url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}")
@@ -25,13 +25,6 @@ dramatiq.set_encoder(CustomJSONEncoder())
 
 from app.actors.scans import scan_by_masscan, scan_by_httpx
 
-ACTOR_MAPPING = {
-    'masscan': scan_by_masscan,
-    'httpx': scan_by_httpx
-}
+ACTOR_MAPPING = {"masscan": scan_by_masscan, "httpx": scan_by_httpx}
 
-__all__ = (
-    "broker",
-    "scan_by_masscan", "scan_by_httpx",
-    "ACTOR_MAPPING"
-)
+__all__ = ("broker", "scan_by_masscan", "scan_by_httpx", "ACTOR_MAPPING")

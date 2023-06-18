@@ -25,15 +25,17 @@ class StoredPipeline(pipeline):
         messages = []
 
         for message in EXTERNAL_JOB_STORE[job_id]:
-            messages.append(Message(
-                queue_name=message['queue_name'],
-                actor_name=message['actor_name'],
-                args=message['args'],
-                kwargs=message['kwargs'],
-                options=message['options'],
-                message_id=message['message_id'],
-                message_timestamp=message['message_timestamp']
-            ))
+            messages.append(
+                Message(
+                    queue_name=message["queue_name"],
+                    actor_name=message["actor_name"],
+                    args=message["args"],
+                    kwargs=message["kwargs"],
+                    options=message["options"],
+                    message_id=message["message_id"],
+                    message_timestamp=message["message_timestamp"],
+                )
+            )
 
         return messages
 

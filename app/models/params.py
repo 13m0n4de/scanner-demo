@@ -13,4 +13,3 @@ class MasscanParams(BaseModel):
 class HttpxParams(BaseModel):
     target: str = Field(..., description="扫描目标")
     port_range: str = Field(..., description="端口范围")
-
