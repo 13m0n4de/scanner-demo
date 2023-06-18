@@ -17,19 +17,20 @@ port = 6379
 [actors.masscan]
 binary = "/usr/bin/masscan"
 command = [
-    "{binary}", "{target}",
-    ["-p", "{port_range}"],
-    ["--rate", "{rate}"],
-    ["--source-ip", "{source_ip}"],
-    ["-oJ", "-"]
+    { field = "binary" },
+    { value = "{target}/24", field = "target" },
+    { name = "-p", field = "port_range" },
+    { name = "--rate", field = "rate" },
+    { name = "--source-ip", field = "source_ip" },
+    { name = "-oJ", value = "-" }
 ]
 
 [actors.httpx]
 binary = 'bin/httpx'
 command = [
-    "{binary}",
-    ["-u", "{target}"],
-    ["-p", "{port_range}"],
-    "-json",
-    "-silent"
+    { field = "binary" },
+    { name = "-u", field = "target" },
+    { name = "-p", field = "port_range" },
+    { value = "-json" },
+    { value = "-silent" }
 ]

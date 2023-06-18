@@ -29,14 +29,23 @@ def build_command(name: str, params: Dict[str, str]) -> List[str]:
     command = []
     params['binary'] = ACTORS_CONFIG[name]['binary']
 
-    for part in ACTORS_CONFIG[name]['command']:
-        if isinstance(part, str):
-            command.append(part.format(**params))
-        else:
-            value = part[1].format(**params)
-            if value != "None":
-                command.append(part[0])
-                command.append(value)
+    for option in ACTORS_CONFIG[name]['command']:
+        # 如果对应字段的值为 None 此条参数调过
+        if 'field' in option and params[option['field']] is None:
+            continue
+
+        if 'name' in option:
+            command.append(option['name'])
+
+        if 'field' in option and 'value' not in option:
+            command.append(str(params[option['field']]))
+        elif 'field' not in option and 'value' in option:
+            command.append(option['value'])
+        elif 'field' in option and 'value' in option:
+            field_name = option['field']
+            command.append((option['value'].format(
+                **{field_name: str(params[field_name])}
+            )))
 
     return command
 
