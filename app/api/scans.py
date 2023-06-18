@@ -1,4 +1,5 @@
 from typing import Union
+from dramatiq.results import ResultMissing
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.models import MasscanParams, HttpxParams
@@ -48,11 +49,28 @@ async def start_scans(
 @router.get("/jobs/{job_id}")
 async def get_job_status(job_id: str):
     pipe = StoredPipeline(job_id=job_id)
+    current_stage = None
+    results = []
+    final_result = None
+
+    for message in pipe.messages:
+        try:
+            result = message.get_result()
+        except ResultMissing:
+            current_stage = message.actor_name
+            break
+        else:
+            results.append({"stage": message.actor_name, "result": result})
+
     if pipe.completed:
         status = "completed"
-        results = pipe.get_result()
+        final_result = pipe.get_result()
     else:
         status = "pending"
-        results = None
 
-    return {"status": status, "results": results}
+    return {
+        "status": status,
+        "current_stage": current_stage,
+        "results": results,
+        "final_result": final_result,
+    }
