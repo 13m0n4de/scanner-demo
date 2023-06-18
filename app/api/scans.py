@@ -1,10 +1,9 @@
 from typing import Union
-from dramatiq import pipeline
 from fastapi import APIRouter, Depends, HTTPException
-from dramatiq.results import ResultMissing, ResultTimeout
 
 from app.models import MasscanParams, HttpxParams
-from app.actors import scan_by_masscan, scan_by_httpx, ACTOR_MAPPING
+from app.actors import ACTOR_MAPPING
+from app.utils import StoredPipeline
 
 router = APIRouter()
 
@@ -13,7 +12,7 @@ def get_first_params(modules: str, params: Union[MasscanParams, HttpxParams]) ->
     if modules == '':
         raise HTTPException(400, detail="No input modules provided")
 
-    module_name = modules.split('/')
+    module_name = modules.split('/')[0]
     match module_name:
         case 'masscan':
             return MasscanParams.parse_obj(params)
@@ -33,76 +32,26 @@ async def start_scans(
     for module_name in module_list[1:]:
         pipe.append(ACTOR_MAPPING[module_name].message())
 
-    pipe = pipeline(pipe)
-    pipe.run()
-    return None
+    pipe = StoredPipeline(pipe).run()
+    pipe.store_pipeline()
 
-
-@router.post("/scans/masscan")
-async def start_masscan(params: MasscanParams):
-    task = scan_by_masscan.send(params)
-    try:
-        status = "submitted"
-        message_id = task.message_id
-    except AttributeError:
-        status = "completed"
-        message_id = None
     return {
-        "status": status,
-        "message_id": message_id
+        "status": "submitted",
+        "job_id": pipe.get_id(),
     }
 
 
-@router.get("/scans/masscan/{message_id}")
-async def get_masscan_status(message_id: str):
-    task_message = scan_by_masscan.message().copy(message_id=message_id)
-    try:
-        result = task_message.get_result()
-    except ResultMissing:
-        status = "missing"
-        result = None
-    except ResultTimeout:
-        status = "timeout"
-        result = None
+@router.get("/jobs/{job_id}")
+async def get_job_status(job_id: str):
+    pipe = StoredPipeline(job_id=job_id)
+    if pipe.completed:
+        status = "completed"
+        results = pipe.get_result()
     else:
-        status = "completed"
+        status = "pending"
+        results = None
 
     return {
         "status": status,
-        "result": result
-    }
-
-
-@router.post("/scans/httpx")
-async def start_masscan(config: HttpxParams):
-    task = scan_by_httpx.send(config)
-    try:
-        status = "submitted"
-        message_id = task.message_id
-    except AttributeError:
-        status = "completed"
-        message_id = None
-    return {
-        "status": status,
-        "message_id": message_id
-    }
-
-
-@router.get("/scans/httpx/{message_id}")
-async def get_httpx_status(message_id: str):
-    task_message = scan_by_httpx.message().copy(message_id=message_id)
-    try:
-        result = task_message.get_result()
-    except ResultMissing:
-        status = "missing"
-        result = None
-    except ResultTimeout:
-        status = "timeout"
-        result = None
-    else:
-        status = "completed"
-
-    return {
-        "status": status,
-        "result": result
+        "results": results
     }
