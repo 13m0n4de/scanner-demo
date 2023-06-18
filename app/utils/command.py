@@ -39,8 +39,10 @@ def build_command(name: str, params: Dict[str, str]) -> List[str]:
 
         if 'field' in option and 'value' not in option:
             command.append(str(params[option['field']]))
+
         elif 'field' not in option and 'value' in option:
             command.append(option['value'])
+
         elif 'field' in option and 'value' in option:
             field_name = option['field']
             command.append((option['value'].format(
