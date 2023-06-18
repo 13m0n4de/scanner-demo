@@ -8,7 +8,7 @@ from app.utils import StoredPipeline
 router = APIRouter()
 
 
-def get_first_params(modules: str, params: Union[MasscanParams, HttpxParams]) -> Union[MasscanParams, HttpxParams]:
+def parse_first_params(modules: str, params: Union[MasscanParams, HttpxParams]) -> Union[MasscanParams, HttpxParams]:
     if modules == '':
         raise HTTPException(400, detail="No input modules provided")
 
@@ -25,7 +25,7 @@ def get_first_params(modules: str, params: Union[MasscanParams, HttpxParams]) ->
 @router.post("/scans/{modules:path}")
 async def start_scans(
     modules: str,
-    params: Union[MasscanParams, HttpxParams] = Depends(get_first_params)
+    params: Union[MasscanParams, HttpxParams] = Depends(parse_first_params)
 ):
     module_list = modules.split('/')
     pipe = [ACTOR_MAPPING[module_list[0]].message(params)]
