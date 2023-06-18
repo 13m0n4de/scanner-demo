@@ -56,7 +56,7 @@ def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResu
             output = subprocess.check_output(command)
             logging.warning(f'output => {output}')
 
-            results = parse_httpx_output(output.decode())
+            results.extend(parse_httpx_output(output.decode()))
 
     logging.warning(f'results => {results}')
 
