@@ -18,7 +18,7 @@ port = 6379
 binary = "/usr/bin/masscan"
 command = [
     { field = "binary" },
-    { value = "{target}/24", field = "target" },
+    { value = "{target}", field = "target" },
     { name = "-p", field = "port_range" },
     { name = "--rate", field = "rate" },
     { name = "--source-ip", field = "source_ip" },
