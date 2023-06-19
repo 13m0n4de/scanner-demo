@@ -4,12 +4,12 @@ import subprocess
 from typing import List, Union
 
 from app.actors import dramatiq
-from app.utils import build_masscan_command, build_httpx_command
+from app.utils import build_masscan_command, build_httpx_command, ModuleSkip
 from app.utils import parse_masscan_output, parse_httpx_output
 from app.models import MasscanParams, HttpxParams, ScanResult
 
 
-@dramatiq.actor(store_results=True)
+@dramatiq.actor(store_results=True, max_retries=0)
 def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
@@ -23,6 +23,9 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
         results = parse_masscan_output(output.decode())
 
     elif isinstance(params, list):
+        if len(params) == 0:
+            raise ModuleSkip("masscan")
+
         for scan_result in params:
             command = build_masscan_command(scan_result)
             logging.warning(f"command => {command}")
@@ -35,7 +38,7 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
     return results
 
 
-@dramatiq.actor(store_results=True)
+@dramatiq.actor(store_results=True, max_retries=0)
 def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
@@ -49,6 +52,9 @@ def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResu
         results = parse_httpx_output(output.decode())
 
     elif isinstance(params, list):
+        if len(params) == 0:
+            raise ModuleSkip("httpx")
+
         for scan_result in params:
             command = build_httpx_command(scan_result)
             logging.warning(f"command => {command}")

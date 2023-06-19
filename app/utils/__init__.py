@@ -2,6 +2,7 @@ from app.utils.command import build_masscan_command, build_httpx_command
 from app.utils.command import parse_masscan_output, parse_httpx_output
 from app.utils.encoder import CustomJSONEncoder
 from app.utils.pipeline import StoredPipeline
+from app.utils.errors import ModuleSkip
 
 __all__ = (
     "CustomJSONEncoder",
@@ -10,4 +11,5 @@ __all__ = (
     "parse_masscan_output",
     "parse_httpx_output",
     "StoredPipeline",
+    "ModuleSkip",
 )

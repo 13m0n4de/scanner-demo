@@ -8,12 +8,14 @@ from app.utils import CustomJSONEncoder
 
 
 class StoredPipeline(pipeline):
-    def __init__(self, children=None, broker=None, job_id=None, encoder=CustomJSONEncoder()):
+    def __init__(
+        self, children=None, broker=None, job_id=None, encoder=CustomJSONEncoder()
+    ):
         self.job_id = str(uuid.uuid4())
         self.redis = StrictRedis(
-            host=CONFIG['redis']['host'],
-            port=CONFIG['redis']['port'],
-            db=CONFIG['redis']['db']
+            host=CONFIG["redis"]["host"],
+            port=CONFIG["redis"]["port"],
+            db=CONFIG["redis"]["db"],
         )
         self.encoder = encoder
 
