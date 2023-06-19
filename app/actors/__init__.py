@@ -11,7 +11,7 @@ from app.utils import CustomJSONEncoder
 REDIS_CONFIG = CONFIG["redis"]
 
 backend = RedisBackend(
-    url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}",
+    url=f"redis://{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}/{REDIS_CONFIG['db']}",
     encoder=CustomJSONEncoder(),
 )
 
