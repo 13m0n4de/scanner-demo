@@ -1,3 +1,4 @@
+import logging
 from typing import Union, Any
 from dramatiq.results import ResultMissing, ResultFailure
 from fastapi import APIRouter, Depends, HTTPException
@@ -52,6 +53,10 @@ async def get_job_status(job_id: str) -> Any:
     pipe = StoredPipeline(job_id=job_id)
 
     final_result = None
+    current_stage = None
+    results = []
+    stopped_at = None
+    stage_id = 0
 
     if pipe.completed:
         status = "completed"
@@ -60,11 +65,6 @@ async def get_job_status(job_id: str) -> Any:
     else:
         status = "pending"
         message = "Job execution is still pending"
-
-    current_stage = None
-    results = []
-    stopped_at = None
-    stage_id = 0
 
     for msg in pipe.messages:
         try:

@@ -30,7 +30,7 @@ class StoredPipeline(pipeline):
 
         for message in self.messages:
             message_data = self.encoder.encode(message.asdict())
-            self.redis.lpush(pipeline_key, message_data)
+            self.redis.rpush(pipeline_key, message_data)
 
         return self.job_id
 
