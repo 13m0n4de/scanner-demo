@@ -73,9 +73,10 @@ async def get_job_status(job_id: str) -> Any:
             current_stage = Stage(stage_id=stage_id, stage_name=msg.actor_name)
             break
         except ResultFailure as e:
-            if isinstance(e.orig_exc_type, ModuleSkip):
+            stopped_at = Stage(stage_id=stage_id, stage_name=msg.actor_name)
+            if e.orig_exc_type == "ModuleSkip":
                 status = "incomplete"
-                stopped_at = Stage(stage_id=stage_id, stage_name=e.orig_exc_msg)
+                message = "Job execution is incomplete"
             else:
                 status = "failed"
                 message = str(e)

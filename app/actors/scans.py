@@ -9,7 +9,7 @@ from app.utils import parse_masscan_output, parse_httpx_output
 from app.models import MasscanParams, HttpxParams, ScanResult
 
 
-@dramatiq.actor(store_results=True, max_retries=0)
+@dramatiq.actor(store_results=True, max_retries=0, throws=ModuleSkip)
 def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
@@ -24,7 +24,7 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
 
     elif isinstance(params, list):
         if len(params) == 0:
-            raise ModuleSkip("masscan")
+            raise ModuleSkip
 
         for scan_result in params:
             command = build_masscan_command(scan_result)
@@ -38,7 +38,7 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
     return results
 
 
-@dramatiq.actor(store_results=True, max_retries=0)
+@dramatiq.actor(store_results=True, max_retries=0, throws=ModuleSkip)
 def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
@@ -53,7 +53,7 @@ def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResu
 
     elif isinstance(params, list):
         if len(params) == 0:
-            raise ModuleSkip("httpx")
+            raise ModuleSkip
 
         for scan_result in params:
             command = build_httpx_command(scan_result)
