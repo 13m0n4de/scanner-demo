@@ -126,7 +126,7 @@ def parse_httpx_output(output: str) -> List[ScanResult]:
         if ip not in scan_results_dict:
             scan_results_dict[ip] = []
         scan_results_dict[ip].append(
-            {"port": result["port"], "protocol": "tcp", "service": result["webserver"]}
+            {"port": result["port"], "protocol": "tcp", "service": result.get("webserver")}
         )
 
     scan_results: List[ScanResult] = []
