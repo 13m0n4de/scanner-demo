@@ -13,7 +13,6 @@ services:
       - ./logs/:/app/logs/
     environment:
       - CONFIG_PATH=config/config.toml
-      - LOG_CONFIG_PATH=config/logging.conf
     depends_on:
       - redis
 
@@ -36,4 +35,3 @@ services:
      restart: always
      ports:
        - "6379:6379"
-
