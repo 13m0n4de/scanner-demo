@@ -31,7 +31,7 @@ def build_command(name: str, params: Dict[str, str]) -> List[str]:
 
     for option in ACTORS_CONFIG[name]["command"]:
         # 如果对应字段的值为 None 此条参数调过
-        if "field" in option and params[option["field"]] is None:
+        if "field" in option and params.get(option["field"]) is None:
             continue
 
         if "name" in option:
@@ -126,7 +126,11 @@ def parse_httpx_output(output: str) -> List[ScanResult]:
         if ip not in scan_results_dict:
             scan_results_dict[ip] = []
         scan_results_dict[ip].append(
-            {"port": result["port"], "protocol": "tcp", "service": result.get("webserver")}
+            {
+                "port": result["port"],
+                "protocol": "tcp",
+                "service": result.get("webserver"),
+            }
         )
 
     scan_results: List[ScanResult] = []

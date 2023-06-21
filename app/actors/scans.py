@@ -9,7 +9,7 @@ from app.utils import parse_masscan_output, parse_httpx_output
 from app.models import MasscanParams, HttpxParams, ScanResult
 
 
-@dramatiq.actor(store_results=True, max_retries=0, throws=ModuleSkip)
+@dramatiq.actor(store_results=True, max_retries=0, throws=(ModuleSkip,))
 def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
@@ -39,7 +39,7 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
     return results
 
 
-@dramatiq.actor(store_results=True, max_retries=0, throws=ModuleSkip)
+@dramatiq.actor(store_results=True, max_retries=0, throws=(ModuleSkip,))
 def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResult]:
     results = []
 
