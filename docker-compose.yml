@@ -7,12 +7,13 @@ services:
     container_name: web
     ports:
       - "5000:5000"
-    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    command: uvicorn main:app --host 0.0.0.0 --port 5000 --log-config config/logging.conf
     volumes:
       - ./config/:/app/config/
       - ./logs/:/app/logs/
     environment:
       - CONFIG_PATH=config/config.toml
+      - LOG_CONFIG_PATH=config/logging.conf
     depends_on:
       - redis
 
@@ -20,7 +21,7 @@ services:
     build: .
     image: worker
     container_name: worker
-    command: dramatiq app:actors.broker
+    command: dramatiq app:actors.broker --log-file logs/dramatiq.log
     volumes:
       - ./config/:/app/config/
       - ./logs/:/app/logs/

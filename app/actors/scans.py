@@ -15,10 +15,10 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
 
     if isinstance(params, MasscanParams):
         command = build_masscan_command(params)
-        logging.warning(f"command => {command}")
+        scan_by_masscan.logger.info(f"command => {command}")
 
         output = subprocess.check_output(command)
-        logging.warning(f"output => {output}")
+        scan_by_masscan.logger.debug(f"output => {output}")
 
         results = parse_masscan_output(output.decode())
 
@@ -31,10 +31,11 @@ def scan_by_masscan(params: Union[MasscanParams, List[ScanResult]]) -> List[Scan
             logging.warning(f"command => {command}")
 
             output = subprocess.check_output(command)
-            logging.warning(f"output => {output}")
+            scan_by_masscan.logger.debug(f"output => {output}")
+
             results.extend(parse_masscan_output(output.decode()))
 
-    logging.warning(f"results => {results}")
+    scan_by_masscan.logger.debug(f"results => {results}")
     return results
 
 
@@ -44,10 +45,10 @@ def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResu
 
     if isinstance(params, HttpxParams):
         command = build_httpx_command(params)
-        logging.warning(f"command => {command}")
+        scan_by_httpx.logger.info(f"command => {command}")
 
         output = subprocess.check_output(command)
-        logging.warning(f"output => {output}")
+        scan_by_httpx.logger.debug(f"output => {output}")
 
         results = parse_httpx_output(output.decode())
 
@@ -57,13 +58,13 @@ def scan_by_httpx(params: Union[HttpxParams, List[ScanResult]]) -> List[ScanResu
 
         for scan_result in params:
             command = build_httpx_command(scan_result)
-            logging.warning(f"command => {command}")
+            scan_by_httpx.logger.info(f"command => {command}")
 
             output = subprocess.check_output(command)
-            logging.warning(f"output => {output}")
+            scan_by_httpx.logger.debug(f"output => {output}")
 
             results.extend(parse_httpx_output(output.decode()))
 
-    logging.warning(f"results => {results}")
+    scan_by_httpx.logger.debug(f"results => {results}")
 
     return results
