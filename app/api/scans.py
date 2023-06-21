@@ -1,4 +1,3 @@
-import logging
 from typing import Union, Any
 from dramatiq.results import ResultMissing, ResultFailure
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.models import MasscanParams, HttpxParams
 from app.models import JobResponse, JobDetails, Stage, StageResult
 from app.actors import ACTOR_MAPPING
-from app.utils import StoredPipeline, ModuleSkip
+from app.utils import StoredPipeline
 
 router = APIRouter()
 
@@ -52,26 +51,24 @@ async def start_scans(
 async def get_job_status(job_id: str) -> Any:
     pipe = StoredPipeline(job_id=job_id)
 
-    final_result = None
+    # details
     current_stage = None
     results = []
     stopped_at = None
     stage_id = 0
 
-    if pipe.completed:
-        status = "completed"
-        message = "Job execution completed"
-        final_result = pipe.get_result()
-    else:
-        status = "pending"
-        message = "Job execution is still pending"
+    status = "pending"
+    message = "Job execution is still pending"
+    final_result = None
 
     for msg in pipe.messages:
         try:
             result = msg.get_result()
+
         except ResultMissing:
             current_stage = Stage(stage_id=stage_id, stage_name=msg.actor_name)
             break
+
         except ResultFailure as e:
             stopped_at = Stage(stage_id=stage_id, stage_name=msg.actor_name)
             if e.orig_exc_type == "ModuleSkip":
@@ -81,11 +78,17 @@ async def get_job_status(job_id: str) -> Any:
                 status = "failed"
                 message = str(e)
             break
+
         else:
             results.append(
                 StageResult(stage_id=stage_id, stage_name=msg.actor_name, result=result)
             )
             stage_id += 1
+
+            if msg is pipe.messages[-1]:
+                status = "completed"
+                message = "Job execution completed"
+                final_result = result
 
     details = JobDetails(
         current_stage=current_stage,
