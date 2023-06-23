@@ -20,7 +20,7 @@ services:
     build: .
     image: worker
     container_name: worker
-    command: dramatiq app:actors.broker --log-file logs/dramatiq.log
+    command: dramatiq app:actors.broker --log-file sys.stderr --log-file logs/dramatiq.log
     volumes:
       - ./config/:/app/config/
       - ./logs/:/app/logs/
