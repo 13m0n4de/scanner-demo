@@ -15,18 +15,28 @@ port = 6379
 db = 0
 
 
-[actors.masscan]
+[actors.port_scan.masscan]
 binary = "/usr/bin/masscan"
 command = [
     { field = "binary" },
     { value = "{target}", field = "target" },
-    { name = "-p", field = "port_range" },
+    { name = "-p", field = "ports" },
     { name = "--rate", field = "rate" },
     { name = "--source-ip", field = "source_ip" },
     { name = "-oJ", value = "-" }
 ]
 
-[actors.httpx]
+[rustscan]
+binary = "bin/rustscan"
+command = [
+    { field = "binary" },
+    { name = "-a", field = "target" },
+    { value = "--no-config" },
+    { value = "-g" },
+]
+
+
+[actors.port_scan.httpx]
 binary = 'bin/httpx'
 command = [
     { field = "binary" },
