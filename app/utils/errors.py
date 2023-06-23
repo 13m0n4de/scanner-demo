@@ -1,2 +1,0 @@
-class ModuleSkip(Exception):
-    pass

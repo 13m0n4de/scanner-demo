@@ -23,8 +23,8 @@ dramatiq.set_broker(broker)
 dramatiq.set_encoder(CustomJSONEncoder())
 
 
-from app.actors.scans import scan_by_masscan, scan_by_httpx
+from app.actors.port_scans import masscan, httpx
 
-ACTOR_MAPPING = {"masscan": scan_by_masscan, "httpx": scan_by_httpx}
+ACTOR_MAPPING = {"masscan": masscan, "httpx": httpx}
 
-__all__ = ("broker", "scan_by_masscan", "scan_by_httpx", "ACTOR_MAPPING")
+__all__ = ("broker", "masscan", "httpx", "ACTOR_MAPPING")

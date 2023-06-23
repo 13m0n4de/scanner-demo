@@ -11,6 +11,10 @@ from app.models import MasscanParams, HttpxParams, ScanResult
 ACTORS_CONFIG = CONFIG["actors"]
 
 
+class ModuleSkip(Exception):
+    pass
+
+
 def get_defaults(model: Type[BaseModel]) -> dict:
     defaults = {}
     for filed_name, filed in model.__fields__.items():
@@ -25,11 +29,11 @@ def get_defaults(model: Type[BaseModel]) -> dict:
     return defaults
 
 
-def build_command(name: str, params: Dict[str, str]) -> List[str]:
+def build_command(_type: str, name: str, params: Dict[str, str]) -> List[str]:
     command = []
-    params["binary"] = ACTORS_CONFIG[name]["binary"]
+    params["binary"] = ACTORS_CONFIG[_type][name]["binary"]
 
-    for option in ACTORS_CONFIG[name]["command"]:
+    for option in ACTORS_CONFIG[_type][name]["command"]:
         # 如果对应字段的值为 None 此条参数调过
         if "field" in option and params.get(option["field"]) is None:
             continue
@@ -70,7 +74,7 @@ def build_masscan_command(params: Union[MasscanParams, ScanResult]) -> List[str]
     else:
         raise TypeError(type(params), params)
 
-    command = build_command("masscan", params_dict)
+    command = build_command("port_scan", "masscan", params_dict)
 
     return command
 
@@ -93,7 +97,7 @@ def build_httpx_command(params: Union[HttpxParams, List[ScanResult]]) -> List[st
     else:
         raise TypeError(type(params), params)
 
-    command = build_command("httpx", params_dict)
+    command = build_command("port_scan", "httpx", params_dict)
 
     return command
 
