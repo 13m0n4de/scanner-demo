@@ -26,7 +26,7 @@ def build_httpx_command(params):
         params_dict.update(
             {
                 "target": params.ip,
-                "port_range": ",".join([str(port) for port in params.open_ports]),
+                "ports": ",".join([str(port) for port in params.open_ports]),
             }
         )
 
@@ -35,9 +35,7 @@ def build_httpx_command(params):
         params_dict.update(
             {
                 "target": params.ip,
-                "port_range": ",".join(
-                    [str(service.port) for service in params.services]
-                ),
+                "ports": ",".join([str(service.port) for service in params.services]),
             }
         )
 
@@ -63,7 +61,7 @@ def parse_httpx_output(output):
             port=result["port"],
             name=result.get("webserver"),
             version=None,
-            banner=result["title"],
+            banner=result.get("title"),
         )
         scan_result_dict[ip].services.append(service_detail)
 

@@ -39,4 +39,22 @@ class MasscanParams(BaseModel):
 
 class HttpxParams(BaseModel):
     target: str = Field(..., description="扫描目标")
-    port_range: str = Field(..., description="端口范围")
+    ports: str = Field(..., description="端口范围")
+
+    @validator("target")
+    def validate_target(cls, value):
+        if (
+            not validate_ip_address(value)
+            and not validate_ip_network(value)
+            and not validate_ip_list(value)
+        ):
+            raise ValueError("Invalid target format")
+
+        return value
+
+    @validator("ports")
+    def validate_port_range(cls, value):
+        if not validate_port_list(value) and not validate_port_range(value):
+            raise ValueError("Invalid ports format")
+
+        return value

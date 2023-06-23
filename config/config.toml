@@ -33,7 +33,7 @@ binary = 'bin/httpx'
 command = [
     { field = "binary" },
     { name = "-u", field = "target" },
-    { name = "-p", field = "port_range" },
+    { name = "-p", field = "ports" },
     { value = "-json" },
     { value = "-silent" }
 ]
