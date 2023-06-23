@@ -2,7 +2,7 @@ from typing import Union, Any
 from dramatiq.results import ResultMissing, ResultFailure
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.models import MasscanParams, HttpxParams
+from app.models import MasscanParams, HttpxParams, RustscanParams
 from app.models import JobResponse, JobDetails, Stage, StageResult
 from app.actors import ACTOR_MAPPING
 from app.utils import StoredPipeline
@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 def parse_first_params(
-    modules: str, params: Union[MasscanParams, HttpxParams]
+    modules: str, params: Union[MasscanParams, RustscanParams, HttpxParams]
 ) -> Union[MasscanParams, HttpxParams]:
     if modules == "":
         raise HTTPException(400, detail="No input modules provided")
@@ -20,6 +20,8 @@ def parse_first_params(
     match module_name:
         case "masscan":
             return MasscanParams.parse_obj(params)
+        case "rustscan":
+            return RustscanParams.parse_obj(params)
         case "httpx":
             return HttpxParams.parse_obj(params)
         case _:
@@ -29,7 +31,9 @@ def parse_first_params(
 @router.post("/scans/{modules:path}")
 async def start_scans(
     modules: str,
-    params: Union[MasscanParams, HttpxParams] = Depends(parse_first_params),
+    params: Union[MasscanParams, RustscanParams, HttpxParams] = Depends(
+        parse_first_params
+    ),
 ):
     module_list = modules.split("/")
     pipe = [ACTOR_MAPPING[module_list[0]].message(params)]

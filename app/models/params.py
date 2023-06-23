@@ -1,5 +1,5 @@
-from typing import Optional, Tuple, List
-from pydantic import BaseModel, Field, validator
+from typing import Optional
+from pydantic import BaseModel, Field, validator, root_validator
 
 from app.utils import (
     validate_ip_address,
@@ -37,23 +37,44 @@ class MasscanParams(BaseModel):
         return value
 
 
-# class RustScanParams(BaseModel):
-#     addresses: str = Field(..., description="扫描目标")
-#     ports: Optional[List[int]] = Field(None, description="端口")
-#     range: Optional[Tuple[int, int]] = Field(None, description="端口")
-#     batch_size: int = Field(4500, description="")
-#
-#     @validator("ports")
-#     def check_ports_and_range(self, value, values):
-#         if value is not None and values.get("range") is not None:
-#             raise ValueError("Only one of 'ports' or 'range' can be specified.")
-#         return value
-#
-#     @validator("range")
-#     def check_ports_and_range(self, value, values):
-#         if value is not None and values.get("ports") is not None:
-#             raise ValueError("Only one of 'ports' or 'range' can be specified.")
-#         return value
+class RustscanParams(BaseModel):
+    addresses: str = Field(..., description="扫描目标")
+    ports: Optional[str] = Field(None, description="端口")
+    port_range: Optional[str] = Field(None, description="端口")
+    batch_size: int = Field(4500, description="")
+
+    @validator("addresses")
+    def validate_addresses(cls, value):
+        if (
+            not validate_ip_address(value)
+            and not validate_ip_network(value)
+            and not validate_ip_range(value)
+            and not validate_ip_list(value)
+        ):
+            raise ValueError("Invalid addresses format")
+
+        return value
+
+    @validator("ports")
+    def validate_ports(cls, value):
+        if value is not None and not validate_port_list(value):
+            raise ValueError("Invalid ports format")
+        return value
+
+    @validator("port_range")
+    def validate_range(cls, value):
+        if value is not None and not validate_port_range(value):
+            raise ValueError("invalid range format")
+        return value
+
+    @root_validator
+    def check_ports_and_range(cls, values):
+        ports = values.get("ports")
+        port_range = values.get("port_range")
+        if (ports and port_range) or (ports is None and port_range is None):
+            raise ValueError("Only one of 'ports' or 'port_range' can be specified.")
+
+        return values
 
 
 class HttpxParams(BaseModel):

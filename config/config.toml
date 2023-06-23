@@ -26,11 +26,13 @@ command = [
     { name = "-oJ", value = "-" }
 ]
 
-[rustscan]
+[actors.port_scan.rustscan]
 binary = "bin/rustscan"
 command = [
     { field = "binary" },
-    { name = "-a", field = "target" },
+    { name = "-a", field = "addresses" },
+    { name = "--ports", field = "ports"},
+    { name = "--range", field = "port_range"},
     { value = "--no-config" },
     { value = "-g" },
 ]
