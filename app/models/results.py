@@ -1,15 +1,37 @@
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
 
-class PortResult(BaseModel):
-    port: int = Field(..., description="端口号")
-    protocol: Optional[str] = Field(None, description="协议")
-    service: Optional[str] = Field(None, description="服务")
-    vulnerabilities: List[str] = Field([], description="存在的漏洞")
+class PortStatus(str, Enum):
+    open = "open"
+    closed = "closed"
+    filtered = "filtered"
 
 
-class ScanResult(BaseModel):
-    ip: str = Field(..., description="IP")
-    ports: List[PortResult] = Field([], description="端口列表")
+class PortDetail(BaseModel):
+    port: int
+    status: PortStatus
+    protocol: Optional[str]
+    ttl: Optional[int]
+
+
+class PortScanResult(BaseModel):
+    ip: str
+    open_ports: List[int]
+    closed_ports: List[int]
+    filtered_ports: List[int]
+    details: List[PortDetail]
+
+
+class ServiceDetail(BaseModel):
+    port: int
+    name: Optional[str]
+    version: Optional[str]
+    banner: Optional[str]
+
+
+class ServiceScanResult(BaseModel):
+    ip: str
+    services: List[ServiceDetail]

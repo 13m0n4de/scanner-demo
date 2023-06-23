@@ -1,7 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel
 
-from app.models import ScanResult
+from app.models import PortScanResult, ServiceScanResult
 
 
 class Stage(BaseModel):
@@ -12,7 +12,7 @@ class Stage(BaseModel):
 class StageResult(BaseModel):
     stage_id: int
     stage_name: str
-    result: List[ScanResult]
+    result: List[Union[PortScanResult, ServiceScanResult]]
 
 
 class JobDetails(BaseModel):
@@ -24,5 +24,5 @@ class JobDetails(BaseModel):
 class JobResponse(BaseModel):
     status: str
     message: str
-    result: Optional[List[ScanResult]]
+    result: Optional[List[Union[PortScanResult, ServiceScanResult]]]
     details: JobDetails

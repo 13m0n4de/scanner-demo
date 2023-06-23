@@ -23,22 +23,12 @@ command = [
     { name = "-p", field = "ports" },
     { name = "--rate", field = "rate" },
     { name = "--source-ip", field = "source_ip" },
-    { name = "-oJ", value = "-" }
-]
-
-[actors.port_scan.rustscan]
-binary = "bin/rustscan"
-command = [
-    { field = "binary" },
-    { name = "-a", field = "addresses" },
-    { name = "--ports", field = "ports"},
-    { name = "--range", field = "port_range"},
-    { value = "--no-config" },
-    { value = "-g" },
+    { name = "-oJ", value = "-" },
+    { name = "--show", value = "all"}
 ]
 
 
-[actors.port_scan.httpx]
+[actors.service_scan.httpx]
 binary = 'bin/httpx'
 command = [
     { field = "binary" },
