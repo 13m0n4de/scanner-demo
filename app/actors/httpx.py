@@ -1,4 +1,5 @@
 import json
+from typing import Union, List
 
 from app.actors import dramatiq
 from app.models import HttpxParams, PortScanResult, ServiceDetail, ServiceScanResult
@@ -17,7 +18,9 @@ def httpx(params):
     )
 
 
-def build_httpx_command(params):
+def build_httpx_command(
+    params: Union[HttpxParams, PortScanResult, ServiceScanResult]
+) -> List[str]:
     if isinstance(params, HttpxParams):
         params_dict = params.dict()
 
@@ -46,7 +49,7 @@ def build_httpx_command(params):
     return command
 
 
-def parse_httpx_output(output):
+def parse_httpx_output(output: str) -> List[ServiceScanResult]:
     if output == "":
         return []
 

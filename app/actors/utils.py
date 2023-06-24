@@ -1,12 +1,19 @@
 import subprocess
 
+from logging import Logger
 from pydantic import BaseModel
 from pydantic.fields import ModelField
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Union, Callable
 
 from app.config import CONFIG
+from app.models import MasscanParams, HttpxParams, PortScanResult, ServiceScanResult
 
 ACTORS_CONFIG = CONFIG["actors"]
+
+
+ScanParams = Union[MasscanParams, PortScanResult, HttpxParams, ServiceScanResult]
+ScanParamsType = Type[ScanParams]
+ScanResults = List[Union[PortScanResult, ServiceScanResult]]
 
 
 class ModuleSkip(Exception):
@@ -27,7 +34,7 @@ def get_defaults(model: Type[BaseModel]) -> dict:
     return defaults
 
 
-def build_command(_type: str, name: str, params: Dict[str, str]) -> List[str]:
+def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[str]:
     command = []
     params.update(ACTORS_CONFIG[_type][name])
 
@@ -54,7 +61,13 @@ def build_command(_type: str, name: str, params: Dict[str, str]) -> List[str]:
     return command
 
 
-def run_scan(params, params_type, build_command_fn, parse_output_fn, logger):
+def run_scan(
+    params: ScanParams,
+    params_type: ScanParamsType,
+    build_command_fn: Callable[[ScanParams], List[str]],
+    parse_output_fn: Callable[[str], ScanResults],
+    logger: Logger,
+):
     results = []
 
     if isinstance(params, params_type):
