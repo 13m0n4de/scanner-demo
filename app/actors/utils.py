@@ -29,7 +29,7 @@ def get_defaults(model: Type[BaseModel]) -> dict:
 
 def build_command(_type: str, name: str, params: Dict[str, str]) -> List[str]:
     command = []
-    params["binary"] = ACTORS_CONFIG[_type][name]["binary"]
+    params.update(ACTORS_CONFIG[_type][name])
 
     for option in ACTORS_CONFIG[_type][name]["command"]:
         # 如果对应字段的值为 None 此条参数调过
