@@ -32,8 +32,8 @@ command = [
 binary = 'bin/httpx'
 command = [
     { field = "binary" },
-    { oprtion = "-u", field = "target" },
-    { oprtion = "-p", field = "ports" },
+    { option = "-u", field = "target" },
+    { option = "-p", field = "ports" },
     { value = "-tech-detect" },
     { value = "-json" },
     { value = "-silent" }
