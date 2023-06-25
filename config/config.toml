@@ -38,3 +38,10 @@ command = [
     { value = "-json" },
     { value = "-silent" }
 ]
+
+chains_command = [
+    { field = "binary" },
+    { value = "-tech-detect" },
+    { value = "-json" },
+    { value = "-silent" }
+]

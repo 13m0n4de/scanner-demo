@@ -3,7 +3,7 @@ import subprocess
 from logging import Logger
 from pydantic import BaseModel
 from pydantic.fields import ModelField
-from typing import List, Dict, Type, Union, Callable
+from typing import List, Dict, Type, Union, Callable, Any
 
 from app.config import CONFIG
 from app.models import MasscanParams, HttpxParams, PortScanResult, ServiceScanResult
@@ -34,11 +34,15 @@ def get_defaults(model: Type[BaseModel]) -> dict:
     return defaults
 
 
-def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[str]:
+def build_command(
+    module_config: Dict[str, Any], params: Dict[str, Any], chains=False
+) -> List[str]:
     command = []
-    params.update(ACTORS_CONFIG[_type][name])
+    params.update(module_config)
 
-    for config in ACTORS_CONFIG[_type][name]["command"]:
+    command_config = module_config["chains_command"] if chains else module_config["command"]
+
+    for config in command_config:
         command_parts = []
 
         # name 可选
@@ -91,39 +95,40 @@ def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[s
 def run_scan(
     params: ScanParams,
     params_type: ScanParamsType,
-    build_command_fn: Callable[[ScanParams], List[str]],
+    build_execution_kwargs: Callable[
+        [Union[ScanParams, List[ScanParams]]], Dict[str, Any]
+    ],
     parse_output_fn: Callable[[str], ScanResults],
     logger: Logger,
 ):
     results = []
 
     if isinstance(params, params_type):
-        command = build_command_fn(params)
-        logger.info(f"command => {command}")
+        execution_kwargs = build_execution_kwargs(params)
+        logger.info(f"execution_kwargs => {execution_kwargs}")
 
-        output = subprocess.check_output(command)
+        output = subprocess.check_output(**execution_kwargs)
         logger.info(f"output => {output}")
 
         results = parse_output_fn(output.decode())
 
     elif isinstance(params, list):
-        if len(params) == 0:
+        if all(
+            [
+                (isinstance(param, PortScanResult) and len(param.open_ports) == 0)
+                or (isinstance(param, ServiceScanResult) and len(param.services) == 0)
+                for param in params
+            ]
+        ):
             raise ModuleSkip
 
-        for param in params:
-            if isinstance(param, PortScanResult) and len(param.open_ports) == 0:
-                raise ModuleSkip
-            elif isinstance(param, ServiceScanResult) and len(param.services) == 0:
-                raise ModuleSkip
+        execution_kwargs = build_execution_kwargs(params)
+        logger.info(f"execution_kwargs => {execution_kwargs}")
 
-        for scan_result in params:
-            command = build_command_fn(scan_result)
-            logger.info(f"command => {command}")
+        output = subprocess.check_output(**execution_kwargs)
+        logger.info(f"output => {output}")
 
-            output = subprocess.check_output(command)
-            logger.info(f"output => {output}")
-
-            results.extend(parse_output_fn(output.decode()))
+        results.extend(parse_output_fn(output.decode()))
 
     logger.info(f"results => {results}")
     return results

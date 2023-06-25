@@ -1,10 +1,14 @@
 import json
-from typing import Union, List
+from typing import Union, List, Dict, Any
 
 from app.actors import dramatiq
 from app.models import HttpxParams, PortScanResult, ServiceDetail, ServiceScanResult
+from app.config import CONFIG
 
 from .utils import ModuleSkip, get_defaults, build_command, run_scan
+
+
+HTTPX_CONFIG = CONFIG["actors"]["service_scan"]["httpx"]
 
 
 @dramatiq.actor(store_results=True, max_retries=0, throws=(ModuleSkip,))
@@ -12,41 +16,42 @@ def httpx(params):
     return run_scan(
         params,
         HttpxParams,
-        build_httpx_command,
+        build_httpx_execution_kwargs,
         parse_httpx_output,
         httpx.logger,
     )
 
 
-def build_httpx_command(
-    params: Union[HttpxParams, PortScanResult, ServiceScanResult]
-) -> List[str]:
+def build_httpx_execution_kwargs(
+    params: Union[HttpxParams, List[Union[PortScanResult, ServiceScanResult]]]
+) -> Dict[str, Any]:
     if isinstance(params, HttpxParams):
         params_dict = params.dict()
+        input_data = None
+        command = build_command(HTTPX_CONFIG, params_dict)
 
-    elif isinstance(params, PortScanResult):
+    elif isinstance(params, list):
         params_dict = get_defaults(HttpxParams)
-        params_dict.update(
-            {
-                "target": params.ip,
-                "ports": ",".join([str(port) for port in params.open_ports]),
-            }
-        )
+        input_data = b""
+        for scan_result in params:
+            if isinstance(scan_result, PortScanResult):
+                ip = scan_result.ip
+                targets = "\n".join([f"{ip}:{port}" for port in scan_result.open_ports])
+                input_data += targets.encode()
 
-    elif isinstance(params, ServiceScanResult):
-        params_dict = get_defaults(HttpxParams)
-        params_dict.update(
-            {
-                "target": params.ip,
-                "ports": ",".join([str(service.port) for service in params.services]),
-            }
-        )
+            elif isinstance(scan_result, ServiceScanResult):
+                ip = scan_result.ip
+                targets = "\n".join(
+                    [f"{ip}:{service.port}" for service in scan_result.services]
+                )
+                input_data += targets.encode()
+
+        command = build_command(HTTPX_CONFIG, params_dict, chains=True)
 
     else:
         raise TypeError(type(params), params)
 
-    command = build_command("service_scan", "httpx", params_dict)
-    return command
+    return {"args": command, "input": input_data}
 
 
 def parse_httpx_output(output: str) -> List[ServiceScanResult]:
@@ -56,7 +61,7 @@ def parse_httpx_output(output: str) -> List[ServiceScanResult]:
     scan_result_dict = {}
     for line in output.splitlines():
         result = json.loads(line)
-        ip = result["input"]
+        ip = result["host"]
         if ip not in scan_result_dict:
             scan_result_dict[ip] = ServiceScanResult(ip=ip, services=[])
 
