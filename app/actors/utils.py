@@ -39,24 +39,51 @@ def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[s
     params.update(ACTORS_CONFIG[_type][name])
 
     for option in ACTORS_CONFIG[_type][name]["command"]:
-        # 如果对应字段的值为 None 此条参数调过
-        if "field" in option and params.get(option["field"]) is None:
-            continue
+        option_command = []
 
+        # name 可选
         if "name" in option:
-            command.append(option["name"])
+            option_command.append(option["name"])
 
-        if "field" in option and "value" not in option:
-            command.append(str(params[option["field"]]))
-
-        elif "field" not in option and "value" in option:
-            command.append(option["value"])
-
-        elif "field" in option and "value" in option:
-            field_name = option["field"]
-            command.append(
-                (option["value"].format(**{field_name: str(params[field_name])}))
+        # field 与 fields 二选一，fields 为空列表是合法的（虽然没有任何意义）
+        if "fields" in option and "field" in option:
+            raise ValueError(
+                "The 'fields' and 'field' attributes cannot be used together."
             )
+
+        # 如果使用 field ，当值为 None 时跳过本选项
+        # 如果有 value ，使用对应值格式化 value 添加到命令列表
+        # 如果没有，就直接添加到命令列表
+        if field_name := option.get("field"):
+            if params.get(field_name) is None:
+                continue
+
+            if "value" in option:
+                option_command.append(
+                    option["value"].format(**{field_name: str(params[field_name])})
+                )
+            else:
+                option_command.append(str(params[field_name]))
+
+        # 使用 fields 可以指定多个 field，每个 field 同上，
+        # 但它要求必须有 value
+        elif fields := option.get("fields"):
+            if "value" not in option:
+                raise ValueError(
+                    "The 'value' attribute is required when using 'fields'."
+                )
+
+            if any(params.get(field) is None for field in fields):
+                continue
+
+            field_values = {field: str(params[field]) for field in fields}
+            option_command.append(option["value"].format(**field_values))
+
+        # 只有 value 时，直接添加
+        elif "value" in option:
+            option_command.append(option["value"])
+
+        command.extend(option_command)
 
     return command
 
