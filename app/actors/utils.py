@@ -83,6 +83,12 @@ def run_scan(
         if len(params) == 0:
             raise ModuleSkip
 
+        for param in params:
+            if isinstance(param, PortScanResult) and len(param.open_ports) == 0:
+                raise ModuleSkip
+            elif isinstance(param, ServiceScanResult) and len(param.services) == 0:
+                raise ModuleSkip
+
         for scan_result in params:
             command = build_command_fn(scan_result)
             logger.info(f"command => {command}")
