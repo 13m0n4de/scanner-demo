@@ -38,15 +38,15 @@ def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[s
     command = []
     params.update(ACTORS_CONFIG[_type][name])
 
-    for option in ACTORS_CONFIG[_type][name]["command"]:
-        option_command = []
+    for config in ACTORS_CONFIG[_type][name]["command"]:
+        command_parts = []
 
         # name 可选
-        if "name" in option:
-            option_command.append(option["name"])
+        if "option" in config:
+            command_parts.append(config["option"])
 
         # field 与 fields 二选一，fields 为空列表是合法的（虽然没有任何意义）
-        if "fields" in option and "field" in option:
+        if "fields" in config and "field" in config:
             raise ValueError(
                 "The 'fields' and 'field' attributes cannot be used together."
             )
@@ -54,21 +54,21 @@ def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[s
         # 如果使用 field ，当值为 None 时跳过本选项
         # 如果有 value ，使用对应值格式化 value 添加到命令列表
         # 如果没有，就直接添加到命令列表
-        if field_name := option.get("field"):
+        if field_name := config.get("field"):
             if params.get(field_name) is None:
                 continue
 
-            if "value" in option:
-                option_command.append(
-                    option["value"].format(**{field_name: str(params[field_name])})
+            if "value" in config:
+                command_parts.append(
+                    config["value"].format(**{field_name: str(params[field_name])})
                 )
             else:
-                option_command.append(str(params[field_name]))
+                command_parts.append(str(params[field_name]))
 
         # 使用 fields 可以指定多个 field，每个 field 同上，
         # 但它要求必须有 value
-        elif fields := option.get("fields"):
-            if "value" not in option:
+        elif fields := config.get("fields"):
+            if "value" not in config:
                 raise ValueError(
                     "The 'value' attribute is required when using 'fields'."
                 )
@@ -77,13 +77,13 @@ def build_command(_type: str, name: str, params: Dict[str, int | str]) -> List[s
                 continue
 
             field_values = {field: str(params[field]) for field in fields}
-            option_command.append(option["value"].format(**field_values))
+            command_parts.append(config["value"].format(**field_values))
 
         # 只有 value 时，直接添加
-        elif "value" in option:
-            option_command.append(option["value"])
+        elif "value" in config:
+            command_parts.append(config["value"])
 
-        command.extend(option_command)
+        command.extend(command_parts)
 
     return command
 

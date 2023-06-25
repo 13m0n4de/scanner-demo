@@ -20,11 +20,11 @@ binary = "/usr/bin/masscan"
 command = [
     { field = "binary" },
     { value = "{target}", field = "target" },
-    { name = "-p", field = "ports" },
-    { name = "--rate", field = "rate" },
-    { name = "--source-ip", field = "source_ip" },
-    { name = "-oJ", value = "-" },
-    { name = "--show", value = "all"}
+    { oprtion = "-p", field = "ports" },
+    { oprtion = "--rate", field = "rate" },
+    { oprtion = "--source-ip", field = "source_ip" },
+    { oprtion = "-oJ", value = "-" },
+    { oprtion = "--show", value = "all"}
 ]
 
 
@@ -32,8 +32,8 @@ command = [
 binary = 'bin/httpx'
 command = [
     { field = "binary" },
-    { name = "-u", field = "target" },
-    { name = "-p", field = "ports" },
+    { oprtion = "-u", field = "target" },
+    { oprtion = "-p", field = "ports" },
     { value = "-tech-detect" },
     { value = "-json" },
     { value = "-silent" }
