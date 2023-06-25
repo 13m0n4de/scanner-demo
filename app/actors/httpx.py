@@ -60,10 +60,13 @@ def parse_httpx_output(output: str) -> List[ServiceScanResult]:
         if ip not in scan_result_dict:
             scan_result_dict[ip] = ServiceScanResult(ip=ip, services=[])
 
+        if not result.get("webserver"):
+            continue
+
         service_detail = ServiceDetail(
             port=result["port"],
-            name=result.get("webserver"),
-            version=None,
+            name=result["webserver"],
+            tech=result["tech"],
             banner=result.get("title"),
         )
         scan_result_dict[ip].services.append(service_detail)

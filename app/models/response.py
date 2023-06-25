@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from app.models import PortScanResult, ServiceScanResult
 
 
+ScanResults = Union[PortScanResult, ServiceScanResult]
+
+
 class Stage(BaseModel):
     stage_id: int
     stage_name: str
@@ -12,7 +15,7 @@ class Stage(BaseModel):
 class StageResult(BaseModel):
     stage_id: int
     stage_name: str
-    result: List[Union[PortScanResult, ServiceScanResult]]
+    result: List[ScanResults]
 
 
 class JobDetails(BaseModel):
@@ -24,5 +27,5 @@ class JobDetails(BaseModel):
 class JobResponse(BaseModel):
     status: str
     message: str
-    result: Optional[List[Union[PortScanResult, ServiceScanResult]]]
+    result: Optional[List[ScanResults]]
     details: JobDetails

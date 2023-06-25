@@ -27,8 +27,8 @@ class PortScanResult(BaseModel):
 
 class ServiceDetail(BaseModel):
     port: int
-    name: Optional[str]
-    version: Optional[str]
+    name: str
+    tech: List[str]
     banner: Optional[str]
 
 

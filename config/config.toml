@@ -34,6 +34,7 @@ command = [
     { field = "binary" },
     { name = "-u", field = "target" },
     { name = "-p", field = "ports" },
+    { value = "-tech-detect" },
     { value = "-json" },
     { value = "-silent" }
 ]
