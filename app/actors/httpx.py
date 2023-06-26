@@ -15,10 +15,10 @@ HTTPX_CONFIG = CONFIG["actors"]["service_scan"]["httpx"]
 def httpx(params):
     return run_scan(
         params,
-        HttpxParams,
         build_httpx_execution_kwargs,
         parse_httpx_output,
         httpx.logger,
+        support_read_targets=True,
     )
 
 

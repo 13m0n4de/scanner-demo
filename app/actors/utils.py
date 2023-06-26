@@ -11,9 +11,8 @@ from app.models import MasscanParams, HttpxParams, PortScanResult, ServiceScanRe
 ACTORS_CONFIG = CONFIG["actors"]
 
 
-ScanParams = Union[MasscanParams, PortScanResult, HttpxParams, ServiceScanResult]
-ScanParamsType = Type[ScanParams]
-ScanResults = List[Union[PortScanResult, ServiceScanResult]]
+ScanParams = Union[MasscanParams, HttpxParams]
+ScanResults = Union[PortScanResult, ServiceScanResult]
 
 
 class ModuleSkip(Exception):
@@ -40,7 +39,9 @@ def build_command(
     command = []
     params.update(module_config)
 
-    command_config = module_config["chains_command"] if chains else module_config["command"]
+    command_config = (
+        module_config["chains_command"] if chains else module_config["command"]
+    )
 
     for config in command_config:
         command_parts = []
@@ -93,42 +94,48 @@ def build_command(
 
 
 def run_scan(
-    params: ScanParams,
-    params_type: ScanParamsType,
+    scan_data: Union[ScanParams, List[ScanResults]],
     build_execution_kwargs: Callable[
-        [Union[ScanParams, List[ScanParams]]], Dict[str, Any]
+        [Union[ScanParams, List[ScanResults]]], Dict[str, Any]
     ],
-    parse_output_fn: Callable[[str], ScanResults],
+    parse_output_fn: Callable[[str], List[ScanResults]],
     logger: Logger,
+    support_read_targets: bool,
 ):
-    results = []
-
-    if isinstance(params, params_type):
-        execution_kwargs = build_execution_kwargs(params)
+    # 执行单个扫描命令（运行一次 subprocess.check_output）
+    def execute_single_scan(
+        _scan_data: [Union[ScanParams, List[ScanResults]]]
+    ) -> List[ScanResults]:
+        execution_kwargs = build_execution_kwargs(_scan_data)
         logger.info(f"execution_kwargs => {execution_kwargs}")
 
         output = subprocess.check_output(**execution_kwargs)
         logger.info(f"output => {output}")
 
-        results = parse_output_fn(output.decode())
+        return parse_output_fn(output.decode())
 
-    elif isinstance(params, list):
+    # 如果来自其他模块的 Result 列表
+    if isinstance(scan_data, list):
         if all(
             [
-                (isinstance(param, PortScanResult) and len(param.open_ports) == 0)
-                or (isinstance(param, ServiceScanResult) and len(param.services) == 0)
-                for param in params
+                (isinstance(result, PortScanResult) and len(result.open_ports) == 0)
+                or (isinstance(result, ServiceScanResult) and len(result.services) == 0)
+                for result in scan_data
             ]
         ):
             raise ModuleSkip
 
-        execution_kwargs = build_execution_kwargs(params)
-        logger.info(f"execution_kwargs => {execution_kwargs}")
+        if support_read_targets:
+            results = execute_single_scan(scan_data)
+        # 模块不支持读入多个扫描目标时，逐个执行拼接结果
+        else:
+            results = []
+            for scan_result in scan_data:
+                results.extend(execute_single_scan(scan_result))
 
-        output = subprocess.check_output(**execution_kwargs)
-        logger.info(f"output => {output}")
-
-        results.extend(parse_output_fn(output.decode()))
+    # 如果是本模块的 Params
+    else:
+        results = execute_single_scan(scan_data)
 
     logger.info(f"results => {results}")
     return results

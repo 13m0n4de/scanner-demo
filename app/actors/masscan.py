@@ -1,25 +1,31 @@
 import json
 
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Any
 
 from app.actors import dramatiq
-from app.models import MasscanParams, PortDetail, PortScanResult
+from app.models import MasscanParams, PortDetail, PortScanResult, ServiceScanResult
+from app.config import CONFIG
 
 from .utils import ModuleSkip, get_defaults, build_command, run_scan
+
+
+MASSCAN_CONFIG = CONFIG["actors"]["port_scan"]["masscan"]
 
 
 @dramatiq.actor(store_results=True, max_retries=0, throws=(ModuleSkip,))
 def masscan(params):
     return run_scan(
         params,
-        MasscanParams,
-        build_masscan_command,
+        build_masscan_execution_kwargs,
         parse_masscan_output,
         masscan.logger,
+        support_read_targets=False,
     )
 
 
-def build_masscan_command(params: Union[MasscanParams, PortScanResult]) -> List[str]:
+def build_masscan_execution_kwargs(
+    params: Union[MasscanParams, PortScanResult, ServiceScanResult]
+) -> Dict[str, Any]:
     if isinstance(params, MasscanParams):
         params_dict = params.dict()
 
@@ -32,11 +38,19 @@ def build_masscan_command(params: Union[MasscanParams, PortScanResult]) -> List[
             }
         )
 
+    elif isinstance(params, ServiceScanResult):
+        params_dict = get_defaults(MasscanParams)
+        params_dict.update(
+            {
+                "target": params.ip,
+                "ports": ",".join([str(service.port) for service in params.services]),
+            }
+        )
+
     else:
         raise TypeError(type(params), params)
 
-    command = build_command("port_scan", "masscan", params_dict)
-    return command
+    return {"args": build_command(MASSCAN_CONFIG, params_dict)}
 
 
 def parse_masscan_output(output: str) -> List[PortScanResult]:
