@@ -20,11 +20,11 @@ binary = "/usr/bin/masscan"
 command = [
     { field = "binary" },
     { value = "{target}", field = "target" },
-    { oprtion = "-p", field = "ports" },
-    { oprtion = "--rate", field = "rate" },
-    { oprtion = "--source-ip", field = "source_ip" },
-    { oprtion = "-oJ", value = "-" },
-    { oprtion = "--show", value = "all"}
+    { option = "-p", field = "ports" },
+    { option = "--rate", field = "rate" },
+    { option = "--source-ip", field = "source_ip" },
+    { option = "-oJ", value = "-" },
+    { option = "--show", value = "all"}
 ]
 
 
